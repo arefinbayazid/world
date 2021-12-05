@@ -1,7 +1,10 @@
 
+// aos libray for animation
+AOS.init();
+
 // load data
 const loadData = () =>{
-    fetch('https://restcountries.eu/rest/v2/all')
+    fetch('https://restcountries.com/v3.1/all')
     .then(res => res.json())
     .then(data => getCoutry(data));
 }
@@ -20,18 +23,20 @@ const getCoutry = countries =>{
 const setHtml = getValue =>{
     const countryRow = document.getElementById('country_row');
     const div = document.createElement('div');
-    div.classList.add('col_4')
+    div.classList.add('col_4');
+    div.setAttribute('data-aos', 'fade-up');
+    div.setAttribute('data-aos-anchor-placement', 'bottom-bottom')
     div.innerHTML=`
     <div class="country_image">
-        <img src = "${getValue.flag}" height="80px" width = "150px">
+        <img src = "${getValue.flags.png}" height="80px" width = "150px">
     </div>
-    <p class="country_property"><b>Country Name :</b> ${getValue.name}</p>
-    <p class="country_property"><b>Capital :</b> ${getValue.capital}</p>
+    <p class="country_property"><b>Country Name :</b> ${getValue.name.common}</p>
+    <p class="country_property"><b>Capital :</b> ${getValue.capital || 'Not Available'}</p>
     <p><b>Region :</b> ${getValue.region}</p>
+    <p><b>Time Zone :</b> ${getValue.timezones[0] || 'Not Available'}</p>
     <p><b>Population :</b> ${getValue.population}</p>
     <p><b>Area :</b> ${getValue.area} km<sup>2</sup></p>
-    <p><b>Top Level Domain :</b> ${getValue.topLevelDomain}</p>
-    <p><b>calling Codes :</b> +${getValue.callingCodes}</p>
+    <p><b>Top Level Domain :</b> ${getValue.tld || 'Not Available'}</p>
     <button id="learn_more_btn">Learn More <i class="fas fa-long-arrow-alt-right"></i></button>
 
     `;
@@ -41,70 +46,40 @@ const setHtml = getValue =>{
 }
 
 // search by country name
-document.getElementById('searchButton').addEventListener('click', function(){
-    const inputField = document.getElementById('searchInput');
-    if(inputField.value !== ''){
-        const searchUrl = `https://restcountries.eu/rest/v2/name/${inputField.value}`;
-        searchData(searchUrl);
-        document.getElementById('country_row').innerHTML='';
-        document.getElementById('searchRow').innerHTML='';
-        document.getElementById('search_sipner').style.display='flex';
-    }
-    else{
-        alert('please write something')
-    }
-    inputField.value = '';
-})
+const inputField = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchButton');
+    inputField.addEventListener('keypress', function(event){
+        if(event.key == "Enter"){
+            searchBtn.click()
+        }
+    })
+    searchBtn.addEventListener('click', function(){
+        if(inputField.value !== ''){
+            const searchUrl = `https://restcountries.com/v3.1/name/${inputField.value}`;
+            searchData(searchUrl);
+            document.getElementById('country_row').innerHTML='';
+            document.getElementById('searchRow').innerHTML='';
+            document.getElementById('search_sipner').style.display='none';
+        }
+        else{
+            alert('please write something')
+        }
+        inputField.value = '';
+    })
+
 
 // search url
+const api = 'https://restcountries.com/v3.1/all';
 const searchData = searchUrl =>{
     fetch(searchUrl)
     .then(res => res.json())
     .then(data => {
         if(data.status === 404){
-            document.getElementById('search_sipner').style.display='none';
-            alert('please write a valied name, now your page will be reload');
-            window.location.reload();
+            searchData(api)
         }
         else{
-            resultSearch(data)
-        }
-    })
-    
-}
-
-// search result
-const resultSearch = sResult =>{
-    if(sResult.length !== 0){
-        console.log(sResult)
-        sResult.forEach(searchCountry =>{
-            searchResutlSetHtml(searchCountry)
-        })
-    }
-    else{
-        console.log(sResult.status)
-    }
-}
-
-// search resul show in html
-const searchResutlSetHtml = resiveData =>{
-    const countryRow = document.getElementById('searchRow');
-    const div = document.createElement('div');
-    div.classList.add('col_4')
-    div.innerHTML=`
-    <div class="country_image">
-        <img src = "${resiveData.flag}" height="80px" width = "150px">
-    </div>
-    <p class="country_property"><b>Country Name :</b> ${resiveData.name}</p>
-    <p class="country_property"><b>Capital :</b> ${resiveData.capital}</p>
-    <p><b>Region :</b> ${resiveData.region}</p>
-    <p><b>Population :</b> ${resiveData.population}</p>
-    <p><b>Area :</b> ${resiveData.area} km<sup>2</sup></p>
-    <p><b>Top Level Domain :</b> ${resiveData.topLevelDomain}</p>
-    <p><b>calling Codes :</b> +${resiveData.callingCodes}</p>
-    <button id="learn_more_btn">Learn More <i class="fas fa-long-arrow-alt-right"></i></button>
-
-    `;
-    countryRow.appendChild(div);
-    document.getElementById('search_sipner').style.display='none';
-}
+            getCoutry(data)
+            console.log(data)
+        } 
+    } 
+)}
